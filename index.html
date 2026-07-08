@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Football TV Live</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#05070a;
+color:white;
+overflow:hidden;
+}
+
+
+/* HEADER */
+
+.header{
+
+height:90px;
+background:#11151b;
+display:flex;
+align-items:center;
+justify-content:space-between;
+
+padding:0 40px;
+
+border-bottom:3px solid #00ff9d;
+
+}
+
+.header h1{
+
+font-size:38px;
+font-weight:900;
+color:#00ff9d;
+
+}
+
+#updated{
+
+font-size:20px;
+color:#aaa;
+
+}
+
+
+
+/* LISTA */
+
+.wrap{
+
+height:calc(100vh - 130px);
+
+padding:25px 40px;
+
+overflow-y:auto;
+
+scroll-behavior:smooth;
+
+}
+
+
+
+/* NDESHJA */
+
+.match{
+
+background:#151a22;
+
+border-radius:18px;
+
+padding:22px;
+
+margin-bottom:20px;
+
+border-left:7px solid #00ff9d;
+
+box-shadow:0 8px 25px rgba(0,0,0,.5);
+
+}
+
+
+
+.league{
+
+font-size:22px;
+
+font-weight:bold;
+
+color:#ffd43b;
+
+margin-bottom:18px;
+
+}
+
+
+
+/* EKIPET */
+
+.row{
+
+display:grid;
+
+grid-template-columns:1fr 180px 1fr;
+
+align-items:center;
+
+}
+
+
+
+.team{
+
+display:flex;
+
+align-items:center;
+
+gap:18px;
+
+font-size:30px;
+
+font-weight:bold;
+
+}
+
+
+.team:last-child{
+
+justify-content:flex-end;
+
+text-align:right;
+
+}
+
+
+
+.team img{
+
+width:65px;
+
+height:65px;
+
+border-radius:50%;
+
+background:white;
+
+padding:5px;
+
+object-fit:contain;
+
+}
+
+
+
+/* ORA */
+
+.center{
+
+text-align:center;
+
+font-size:26px;
+
+font-weight:bold;
+
+color:#00ff9d;
+
+}
+
+
+
+.live{
+
+display:inline-block;
+
+background:#ff3030;
+
+padding:6px 15px;
+
+border-radius:20px;
+
+font-size:16px;
+
+margin-top:8px;
+
+animation:blink 1s infinite;
+
+}
+
+
+@keyframes blink{
+
+50%{
+
+opacity:.4;
+
+}
+
+}
+
+
+
+/* FOOTER */
+
+footer{
+
+position:fixed;
+
+bottom:0;
+
+height:35px;
+
+left:0;
+
+right:0;
+
+background:#11151b;
+
+text-align:center;
+
+padding:8px;
+
+color:#777;
+
+}
+
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="header">
+
+<h1>⚽ FUTBOLL LIVE TV</h1>
+
+<div id="updated">
+Loading...
+</div>
+
+</div>
+
+
+
+<div class="wrap" id="games">
+
+Loading matches...
+
+</div>
+
+
+
+<footer>
+
+Android TV Football Widget
+
+</footer>
+
+
+
+<script>
+
+
+const leagues=[
+4304,
+4328,
+4335,
+4332,
+4331,
+4334,
+4337,
+4338,
+4340,
+4341
+];
+
+
+let all=[];
+
+
+
+function formatLocalTime(date,time){
+
+if(!date || !time)
+return "--:--";
+
+
+let utc =
+new Date(date+"T"+time+":00Z");
+
+
+return utc.toLocaleTimeString([],{
+
+hour:"2-digit",
+minute:"2-digit"
+
+});
+
+}
+
+
+
+
+async function load(){
+
+
+all=[];
+
+
+for(let id of leagues){
+
+
+try{
+
+
+let r =
+await fetch(
+"https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id="+id
+);
+
+
+let d =
+await r.json();
+
+
+
+if(d && d.events){
+
+all.push(...d.events);
+
+}
+
+
+
+}catch(e){}
+
+
+
+}
+
+
+render();
+
+
+document.getElementById("updated").innerHTML=
+"Updated "+new Date().toLocaleTimeString();
+
+
+
+}
+
+
+
+
+
+function render(){
+
+
+if(all.length===0){
+
+document.getElementById("games").innerHTML=
+"⚠️ No matches";
+
+return;
+
+}
+
+
+
+document.getElementById("games").innerHTML=
+
+
+all.map(ev=>`
+
+
+<div class="match">
+
+
+<div class="league">
+
+🏆 ${ev.strLeague || ""}
+
+</div>
+
+
+
+<div class="row">
+
+
+
+<div class="team">
+
+
+<img src="${
+ev.strHomeTeamBadge ||
+'https://via.placeholder.com/65'
+}">
+
+
+<span>
+
+${ev.strHomeTeam || ""}
+
+</span>
+
+
+</div>
+
+
+
+
+<div class="center">
+
+
+⏰
+
+${formatLocalTime(
+ev.dateEvent,
+ev.strTime
+)}
+
+
+</div>
+
+
+
+
+<div class="team">
+
+
+<span>
+
+${ev.strAwayTeam || ""}
+
+</span>
+
+
+<img src="${
+ev.strAwayTeamBadge ||
+'https://via.placeholder.com/65'
+}">
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+`).join("");
+
+
+
+}
+
+
+
+
+
+/* AUTO SCROLL */
+
+setInterval(()=>{
+
+
+let el=document.querySelector(".wrap");
+
+
+el.scrollBy({
+
+top:250,
+
+behavior:"smooth"
+
+});
+
+
+
+if(
+el.scrollTop+el.clientHeight>=el.scrollHeight
+){
+
+el.scrollTo({
+
+top:0,
+
+behavior:"smooth"
+
+});
+
+}
+
+
+
+},5000);
+
+
+
+
+load();
+
+
+setInterval(load,60000);
+
+
+
+</script>
+
+
+</body>
+</html>
